@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bitácora de Pedidos — Logística MAM</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--az:#1a237e;--azm:#283593;--azc:#3949ab;--ac:#ff6f00;--ve:#2e7d32;--ro:#c62828;--gr:#f5f7fa;--gb:#e8eaf0;--sh:0 4px 20px rgba(26,35,126,.10);--rd:14px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--gr);color:#1a1a2e}
+header{background:linear-gradient(135deg,var(--az),var(--azc) 60%,#5c6bc0);color:#fff;padding:0 28px;display:flex;align-items:center;justify-content:space-between;min-height:68px;box-shadow:0 2px 14px rgba(0,0,0,.3);position:sticky;top:0;z-index:100}
+.lw{display:flex;align-items:center;gap:12px}.li{font-size:30px}.lt h1{font-size:1.25rem;font-weight:800}.lt p{font-size:.75rem;opacity:.78;margin-top:2px}
+.hb{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:5px 14px;font-size:.78rem;font-weight:600;display:flex;align-items:center;gap:7px}
+.dl{width:8px;height:8px;background:#69f0ae;border-radius:50%;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+main{max-width:1380px;margin:0 auto;padding:26px 18px 60px}
+.kpi-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:16px;margin-bottom:24px}
+.kpi{background:#fff;border-radius:var(--rd);padding:20px 22px;box-shadow:var(--sh);border-left:5px solid var(--azc);transition:transform .2s}
+.kpi:hover{transform:translateY(-3px)}.kpi.v{border-left-color:var(--ve)}.kpi.n{border-left-color:var(--ac)}.kpi.m{border-left-color:#7b1fa2}
+.ki{font-size:1.7rem;margin-bottom:6px}.kv{font-size:1.6rem;font-weight:900;color:var(--az);line-height:1}
+.kpi.v .kv{color:var(--ve)}.kpi.n .kv{color:var(--ac)}.kpi.m .kv{color:#7b1fa2}
+.kl{font-size:.78rem;color:#666;margin-top:4px;font-weight:500}
+.st{font-size:1rem;font-weight:700;color:var(--az);margin-bottom:14px;display:flex;align-items:center;gap:7px;padding-bottom:7px;border-bottom:2px solid var(--gb)}
+.card{background:#fff;border-radius:var(--rd);padding:22px;box-shadow:var(--sh);margin-bottom:20px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:860px){.g2{grid-template-columns:1fr}}
+.cw{position:relative;height:255px}.cwt{position:relative;height:335px}
+.tabs{display:flex;gap:4px;margin-bottom:14px}
+.tab{padding:6px 16px;border-radius:8px;cursor:pointer;font-size:.8rem;font-weight:600;border:2px solid var(--gb);color:#666;transition:.2s;user-select:none}
+.tab.active{background:var(--az);color:#fff;border-color:var(--az)}
+.ew{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.ei{flex:1;min-width:110px;background:var(--gr);border-radius:10px;padding:12px;text-align:center}
+.en{font-size:1.4rem;font-weight:900}.el{font-size:.73rem;color:#666;margin-top:3px}
+.eb{height:5px;border-radius:3px;margin-top:7px}
+.ce{color:var(--ve)} .be{background:var(--ve)}
+.cp{color:var(--ac)} .bp{background:var(--ac)}
+.cpe{color:#7b1fa2} .bpe{background:#7b1fa2}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.83rem}
+th{background:var(--az);color:#fff;padding:9px 13px;text-align:left;font-weight:600;font-size:.78rem}
+td{padding:8px 13px;border-bottom:1px solid var(--gb)}
+tr:hover td{background:#f0f4ff}
+.fn{background:var(--az);color:#fff;border-radius:4px;padding:2px 6px;font-size:.72rem;font-weight:700}
+.vc{font-weight:700;color:var(--ve)}
+.rk{border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;color:#fff;background:var(--ac)}
+.r1{background:#ffd700;color:#333}.r2{background:#c0c0c0;color:#333}.r3{background:#cd7f32}
+.badge{border-radius:12px;padding:3px 9px;font-size:.7rem;font-weight:700}
+.badge-ent{background:#e8f5e9;color:var(--ve)}.badge-proc{background:#fff3e0;color:var(--ac)}.badge-pend{background:#fce4ec;color:var(--ro)}
+.vg{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:13px}
+.vc-card{background:linear-gradient(135deg,var(--az),var(--azc));color:#fff;border-radius:var(--rd);padding:15px;text-align:center;transition:transform .2s}
+.vc-card:hover{transform:translateY(-4px)}.vc-card.gold{background:linear-gradient(135deg,#f57f17,#ffca28);color:#333}
+.vc-name{font-size:.8rem;font-weight:700;margin:5px 0}.vc-num{font-size:1.5rem;font-weight:900}.vc-val{font-size:.7rem;opacity:.85;margin-top:2px}
+.upd{text-align:right;color:#999;font-size:.75rem;margin-bottom:8px}
+footer{text-align:center;padding:22px;color:#aaa;font-size:.76rem;border-top:1px solid var(--gb);margin-top:12px}
+</style>
+</head>
+<body>
+<header>
+  <div class="lw">
+    <div class="li">🚚</div>
+    <div class="lt">
+      <h1>Bitácora de Pedidos — Logística MAM</h1>
+      <p>Panel de Control Operativo · Año 2026</p>
+    </div>
+  </div>
+  <div class="hb"><span class="dl"></span>Actualizado: 26/03/2026 15:05</div>
+</header>
+<main>
+<div class="upd">🔄 Última actualización: 26/03/2026 15:05</div>
+
+<!-- KPIs -->
+<div class="kpi-g">
+  <div class="kpi"><div class="ki">📦</div><div class="kv">653</div><div class="kl">Total Pedidos 2026</div></div>
+  <div class="kpi v"><div class="ki">💰</div><div class="kv">$1.032.782.550</div><div class="kl">Total Facturado 2026</div></div>
+  <div class="kpi n"><div class="ki">👥</div><div class="kv">364</div><div class="kl">Clientes Únicos</div></div>
+  <div class="kpi m"><div class="ki">📊</div><div class="kv">$1.581.597</div><div class="kl">Ticket Promedio</div></div>
+  <div class="kpi v"><div class="ki">✅</div><div class="kv">32%</div><div class="kl">Pedidos Entregados</div></div>
+  <div class="kpi n"><div class="ki">🏪</div><div class="kv">14</div><div class="kl">Vendedores Activos</div></div>
+</div>
+
+<!-- Mes + Estados -->
+<div class="g2">
+  <div class="card">
+    <div class="st">📅 Pedidos y Facturación por Mes</div>
+    <div class="cw"><canvas id="cMes"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="st">🚦 Estado de Pedidos</div>
+    <div class="cw"><canvas id="cEst"></canvas></div>
+    <div class="ew">
+      <div class="ei"><div class="en ce">206</div><div class="el">ENTREGADOS</div><div class="eb be" style="width:32%"></div></div>
+      <div class="ei"><div class="en cp">447</div><div class="el">EN PROCESO</div><div class="eb bp" style="width:68%"></div></div>
+      <div class="ei"><div class="en cpe">0</div><div class="el">PENDIENTES</div><div class="eb bpe" style="width:0%"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Top 20 Clientes -->
+<div class="card">
+  <div class="st">🏆 Top 20 Clientes</div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('v')">💰 Por Valor Facturado</div>
+    <div class="tab" onclick="switchTab('p')">📦 Por # de Pedidos</div>
+  </div>
+  <div id="tv" class="cwt"><canvas id="cTopV"></canvas></div>
+  <div id="tp" class="cwt" style="display:none"><canvas id="cTopP"></canvas></div>
+</div>
+
+<!-- Vendedores -->
+<div class="card">
+  <div class="st">🌟 Rendimiento de Vendedores</div>
+  <div class="vg"><div class="vc-card gold">
+          <div style="font-size:1.6rem">🥇</div>
+          <div class="vc-name">JULIAN ALZATE</div>
+          <div class="vc-num">144</div>
+          <div style="font-size:.7rem;opacity:.8">pedidos</div>
+          <div class="vc-val">$272.490.905</div>
+        </div><div class="vc-card">
+          <div style="font-size:1.6rem">🥈</div>
+          <div class="vc-name">DAVID ALZATE</div>
+          <div class="vc-num">153</div>
+          <div style="font-size:.7rem;opacity:.8">pedidos</div>
+          <div class="vc-val">$226.734.130</div>
+        </div><div class="vc-card">
+          <div style="font-size:1.6rem">🥉</div>
+          <div class="vc-name">JORGE SANCHEZ</div>
+          <div class="vc-num">148</div>
+          <div style="font-size:.7rem;opacity:.8">pedidos</div>
+          <div class="vc-val">$184.434.380</div>
+        </div><div class="vc-card">
+          <div style="font-size:1.6rem">👤</div>
+          <div class="vc-name">ROBERTO GIRALDO</div>
+          <div class="vc-num">50</div>
+          <div style="font-size:.7rem;opacity:.8">pedidos</div>
+          <div class="vc-val">$110.922.800</div>
+        </div><div class="vc-card">
+          <div style="font-size:1.6rem">👤</div>
+          <div class="vc-name">ADMIN MEDELLIN</div>
+          <div class="vc-num">24</div>
+          <div style="font-size:.7rem;opacity:.8">pedidos</div>
+          <div class="vc-val">$67.664.060</div>
+        </div><div class="vc-card">
+          <div style="font-size:1.6rem">👤</div>
+          <div class="vc-name">ANA LUCIA YATE</div>
+          <div class="vc-num">72</div>
+          <div style="font-size:.7rem;opacity:.8">pedidos</div>
+          <div class="vc-val">$47.669.545</div>
+        </div><div class="vc-card">
+          <div style="font-size:1.6rem">👤</div>
+          <div class="vc-name">CARLOS MORALES</div>
+          <div class="vc-num">28</div>
+          <div style="font-size:.7rem;opacity:.8">pedidos</div>
+          <div class="vc-val">$45.575.730</div>
+        </div><div class="vc-card">
+          <div style="font-size:1.6rem">👤</div>
+          <div class="vc-name">ELKIN</div>
+          <div class="vc-num">1</div>
+          <div style="font-size:.7rem;opacity:.8">pedidos</div>
+          <div class="vc-val">$36.257.800</div>
+        </div><div class="vc-card">
+          <div style="font-size:1.6rem">👤</div>
+          <div class="vc-name">OLGA BETANCOURT</div>
+          <div class="vc-num">26</div>
+          <div style="font-size:.7rem;opacity:.8">pedidos</div>
+          <div class="vc-val">$29.770.300</div>
+        </div><div class="vc-card">
+          <div style="font-size:1.6rem">👤</div>
+          <div class="vc-name">YUBISAY BARRIOS</div>
+          <div class="vc-num">1</div>
+          <div style="font-size:.7rem;opacity:.8">pedidos</div>
+          <div class="vc-val">$4.840.000</div>
+        </div><div class="vc-card">
+          <div style="font-size:1.6rem">👤</div>
+          <div class="vc-name">JUAN ABADIA</div>
+          <div class="vc-num">1</div>
+          <div style="font-size:.7rem;opacity:.8">pedidos</div>
+          <div class="vc-val">$3.354.300</div>
+        </div><div class="vc-card">
+          <div style="font-size:1.6rem">👤</div>
+          <div class="vc-name">ADMIN BOGOTA</div>
+          <div class="vc-num">2</div>
+          <div style="font-size:.7rem;opacity:.8">pedidos</div>
+          <div class="vc-val">$2.502.500</div>
+        </div><div class="vc-card">
+          <div style="font-size:1.6rem">👤</div>
+          <div class="vc-name">OSCAR GUTIERREZ</div>
+          <div class="vc-num">1</div>
+          <div style="font-size:.7rem;opacity:.8">pedidos</div>
+          <div class="vc-val">$498.600</div>
+        </div><div class="vc-card">
+          <div style="font-size:1.6rem">👤</div>
+          <div class="vc-name">CRISTIAN HODNETT</div>
+          <div class="vc-num">2</div>
+          <div style="font-size:.7rem;opacity:.8">pedidos</div>
+          <div class="vc-val">$67.500</div>
+        </div></div>
+</div>
+
+<!-- Destinos + Colaboradores -->
+<div class="g2">
+  <div class="card">
+    <div class="st">🗺️ Top Destinos de Envío</div>
+    <div class="cwt"><canvas id="cCiu"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="st">👔 Top Colaboradores</div>
+    <div class="tw"><table>
+      <thead><tr><th>#</th><th>Colaborador</th><th>Pedidos</th><th>Valor Total</th></tr></thead>
+      <tbody><tr>
+          <td><span class="rk r1">1</span></td>
+          <td><strong>FELIPE TABARQUINO</strong></td>
+          <td style="text-align:center">208</td>
+          <td class="vc">$385.760.535</td>
+        </tr><tr>
+          <td><span class="rk r2">2</span></td>
+          <td><strong>CRISTIAN HODNETT</strong></td>
+          <td style="text-align:center">149</td>
+          <td class="vc">$157.046.410</td>
+        </tr><tr>
+          <td><span class="rk r3">3</span></td>
+          <td><strong>DIEGO GUTIERREZ</strong></td>
+          <td style="text-align:center">80</td>
+          <td class="vc">$142.758.640</td>
+        </tr><tr>
+          <td><span class="rk r4">4</span></td>
+          <td><strong>JORGE SANCHEZ</strong></td>
+          <td style="text-align:center">74</td>
+          <td class="vc">$95.414.040</td>
+        </tr><tr>
+          <td><span class="rk r4">5</span></td>
+          <td><strong>ROMANTIEZER</strong></td>
+          <td style="text-align:center">72</td>
+          <td class="vc">$122.686.355</td>
+        </tr><tr>
+          <td><span class="rk r4">6</span></td>
+          <td><strong>JULIAN ALZATE</strong></td>
+          <td style="text-align:center">29</td>
+          <td class="vc">$68.788.060</td>
+        </tr><tr>
+          <td><span class="rk r4">7</span></td>
+          <td><strong>DAVID ALZATE</strong></td>
+          <td style="text-align:center">22</td>
+          <td class="vc">$38.690.190</td>
+        </tr><tr>
+          <td><span class="rk r4">8</span></td>
+          <td><strong>MONITO</strong></td>
+          <td style="text-align:center">7</td>
+          <td class="vc">$7.479.900</td>
+        </tr><tr>
+          <td><span class="rk r4">9</span></td>
+          <td><strong>DON CARLOS</strong></td>
+          <td style="text-align:center">6</td>
+          <td class="vc">$6.029.420</td>
+        </tr><tr>
+          <td><span class="rk r4">10</span></td>
+          <td><strong>CARLOS HENAO</strong></td>
+          <td style="text-align:center">5</td>
+          <td class="vc">$7.634.500</td>
+        </tr></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- Recientes -->
+<div class="card">
+  <div class="st">🕐 Últimos Pedidos Registrados</div>
+  <div class="tw"><table>
+    <thead><tr><th>Factura</th><th>Cliente</th><th>Fecha</th><th>Valor</th><th>Vendedor</th><th>Destino</th><th>Estado</th></tr></thead>
+    <tbody><tr>
+          <td><span class="fn">#30498</span></td>
+          <td title="MEGA AUDIO MARINILLA">MEGA AUDIO MARINILLA</td>
+          <td>2026-03-25</td>
+          <td class="vc">$1.050.000</td>
+          <td>JULIAN ALZATE</td>
+          <td>MARINILLA-ANTIOQUIA</td>
+          <td><span class="badge badge-ent">ENTREGADO</span></td>
+        </tr><tr>
+          <td><span class="fn">#30503</span></td>
+          <td title="SONILED MEDELLIN S.A.S">SONILED MEDELLIN S.A.S</td>
+          <td>2026-03-25</td>
+          <td class="vc">$324.600</td>
+          <td>JULIAN ALZATE</td>
+          <td>MEDELLIN ANTIOQUIA</td>
+          <td><span class="badge badge-ent">ENTREGADO</span></td>
+        </tr><tr>
+          <td><span class="fn">#30497</span></td>
+          <td title="ALVARO JAVIER AYALA HERNANDEZ">ALVARO JAVIER AYALA HERNANDEZ</td>
+          <td>2026-03-25</td>
+          <td class="vc">$300.000</td>
+          <td>DAVID ALZATE</td>
+          <td>MEDELLIN ANTIOQUIA</td>
+          <td><span class="badge badge-ent">ENTREGADO</span></td>
+        </tr><tr>
+          <td><span class="fn">#30500</span></td>
+          <td title="JUANCHO MOTOS">JUANCHO MOTOS</td>
+          <td>2026-03-25</td>
+          <td class="vc">$944.200</td>
+          <td>JULIAN ALZATE</td>
+          <td>MEDELLIN ANTIOQUIA</td>
+          <td><span class="badge badge-ent">ENTREGADO</span></td>
+        </tr><tr>
+          <td><span class="fn">#30505</span></td>
+          <td title="RELOMAR/MISCELANEA LOVAINA">RELOMAR/MISCELANEA LOVAINA</td>
+          <td>2026-03-25</td>
+          <td class="vc">$2.945.600</td>
+          <td>DAVID ALZATE</td>
+          <td>MEDELLIN ANTIOQUIA</td>
+          <td><span class="badge badge-ent">ENTREGADO</span></td>
+        </tr><tr>
+          <td><span class="fn">#30514</span></td>
+          <td title="IMPORLED">IMPORLED</td>
+          <td>2026-03-25</td>
+          <td class="vc">$819.000</td>
+          <td>ROBERTO GIRALDO</td>
+          <td>BOGOTA DC-CUNDINAMARCA</td>
+          <td><span class="badge badge-ent">ENTREGADO</span></td>
+        </tr><tr>
+          <td><span class="fn">#30508</span></td>
+          <td title="DANIEL ALEHANDRO MARTINEZ">DANIEL ALEHANDRO MARTINEZ</td>
+          <td>2026-03-25</td>
+          <td class="vc">$2.156.900</td>
+          <td>JULIAN ALZATE</td>
+          <td>RIONEGRO-ANTIOQUIA</td>
+          <td><span class="badge badge-ent">ENTREGADO</span></td>
+        </tr><tr>
+          <td><span class="fn">#30480</span></td>
+          <td title="CARROS Y CARROS">CARROS Y CARROS</td>
+          <td>2026-03-24</td>
+          <td class="vc">$176.000</td>
+          <td>JULIAN ALZATE</td>
+          <td>BOGOTA DC-CUNDINAMARCA</td>
+          <td><span class="badge badge-ent">ENTREGADO</span></td>
+        </tr><tr>
+          <td><span class="fn">#30487</span></td>
+          <td title="ALVARO JAVIER AYALA HERNANDEZ">ALVARO JAVIER AYALA HERNANDEZ</td>
+          <td>2026-03-24</td>
+          <td class="vc">$385.040</td>
+          <td>DAVID ALZATE</td>
+          <td>MEDELLIN ANTIOQUIA</td>
+          <td><span class="badge badge-ent">ENTREGADO</span></td>
+        </tr><tr>
+          <td><span class="fn">#30484</span></td>
+          <td title="INSTRUMENTOS DREAMCARS SR ANDRES CASTRILLON GOMEZ">INSTRUMENTOS DREAMCARS SR ANDRES CASTRIL</td>
+          <td>2026-03-24</td>
+          <td class="vc">$1.066.000</td>
+          <td>DAVID ALZATE</td>
+          <td>OCAÑA-NORTE DE SANTANDER</td>
+          <td><span class="badge badge-ent">ENTREGADO</span></td>
+        </tr><tr>
+          <td><span class="fn">#30482</span></td>
+          <td title="LUJOS BAM BAM">LUJOS BAM BAM</td>
+          <td>2026-03-24</td>
+          <td class="vc">$1.398.000</td>
+          <td>DAVID ALZATE</td>
+          <td>ENVIGADO - ANTIOQUIA</td>
+          <td><span class="badge badge-ent">ENTREGADO</span></td>
+        </tr><tr>
+          <td><span class="fn">#30485</span></td>
+          <td title="EXTINTORES Y LUBRICANTES">EXTINTORES Y LUBRICANTES</td>
+          <td>2026-03-24</td>
+          <td class="vc">$690.000</td>
+          <td>DAVID ALZATE</td>
+          <td>MEDELLIN ANTIOQUIA</td>
+          <td><span class="badge badge-ent">ENTREGADO</span></td>
+        </tr><tr>
+          <td><span class="fn">#30487</span></td>
+          <td title="ALVARO JAVIER AYALA HERNANDEZ">ALVARO JAVIER AYALA HERNANDEZ</td>
+          <td>2026-03-24</td>
+          <td class="vc">$385.040</td>
+          <td>DAVID ALZATE</td>
+          <td>MEDELLIN ANTIOQUIA</td>
+          <td><span class="badge badge-ent">ENTREGADO</span></td>
+        </tr><tr>
+          <td><span class="fn">#30486</span></td>
+          <td title="DACARK">DACARK</td>
+          <td>2026-03-24</td>
+          <td class="vc">$7.104.000</td>
+          <td>ROBERTO GIRALDO</td>
+          <td>BOGOTA DC-CUNDINAMARCA</td>
+          <td><span class="badge badge-ent">ENTREGADO</span></td>
+        </tr><tr>
+          <td><span class="fn">#30481</span></td>
+          <td title="ALBERTO ELIAS MIRANDA JARAMILLO/LUJOS EL GAMIN">ALBERTO ELIAS MIRANDA JARAMILLO/LUJOS EL</td>
+          <td>2026-03-24</td>
+          <td class="vc">$924.800</td>
+          <td>DAVID ALZATE</td>
+          <td>MEDELLIN ANTIOQUIA</td>
+          <td><span class="badge badge-ent">ENTREGADO</span></td>
+        </tr></tbody>
+  </table></div>
+</div>
+</main>
+<footer>Bitácora de Pedidos — Logística MAM 2026 &nbsp;·&nbsp; 653 pedidos · 364 clientes · $1.032.782.550 facturados</footer>
+
+<script>
+Chart.defaults.font.family="'Segoe UI',Arial,sans-serif";Chart.defaults.color='#555';
+function fco(v){return'$'+Math.round(v).toLocaleString('es-CO')}
+const ML=["ENERO", "FEBRERO", "MARZO"],MP=[264, 264, 125],MV=[469477180.0, 393407745.0, 169897625.0];
+const TVN=["JONATHAN RIVERA MURCIA", "GENEZI TECNOLOGIA LED S.A.S", "MARVIN VELAZCO - MEDELLIN", "VICTOR MANUEL PADRON", "ELECTRO PARTES MARIO - CALI", "LUJOS MARINILLA", "TECNI AUTOOLS SAS WALTER RIVERA", "FABIAN FACARSZ", "JENNY ROCIO VILLAMIL SUAREZ", "REPUESTOS LOROS", "CARLOS ZAMORA", "DACARK", "CRISTIAN YAMIT VARELA ROJAS", "JOSE ALVARO ACOSTA", "MIGUEL ANGEL CHAMORRO", "JORGE DAVID SANCHEZ CORREA / LUJOS EL ", "OSWALDO PICO", "GPS TRUCKS STORE COLOMBIA S.A.S", "DIOMEDES CANO QUEVEDO / EL PUNTO DEL P", "AUDIOLUJOS MARINILLA"],TVV=[61849800.0, 52138880.0, 43898450.0, 32410000.0, 23312900.0, 22375800.0, 18517410.0, 17358600.0, 14168000.0, 12955760.0, 12705600.0, 11805000.0, 10421000.0, 9599000.0, 8350000.0, 8312000.0, 8071100.0, 7563300.0, 7301960.0, 7105090.0];
+const TPN=["GENEZI TECNOLOGIA LED S.A.S", "MARVIN VELAZCO - MEDELLIN", "LUJOS JL", "VICTOR MANUEL PADRON", "LUJOS BAM BAM", "DIOMEDES CANO QUEVEDO / EL PUNTO DEL P", "SEBASTIAN CASTELBLANCO BERNAL", "REPUESTOS LOROS", "ELECTRO PARTES MARIO - CALI", "CARLOS ANDRES QUICENO", "LUJOS POCHOLO", "JH IMPORTS S.A.S / JH IMPORTS", "SONILED MEDELLIN S.A.S", "JOHANA RIVERO GAMARRA", "MARBI SLEIDA TOVAR CORREAL", "ARGIRIO ANTONIO GIL / PALMOCAR", "RAUL PACHECO PACANCHIQUE", "FABIAN FACARSZ", "MARIA EUGENIA ORTIZ ARANGO / LEDAUTO", "SEGUNDAS MARIO"],TPV=[16, 9, 8, 7, 7, 7, 7, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4];
+const CUN=["BOGOTA DC", "MEDELLIN ANTIOQUIA", "BELLO", "CALI", "ITAGUI", "MARINILLA", "YARUMAL", "CUCUTA", "GUARNE", "PALMIRA"],CUP=[191, 139, 33, 29, 22, 16, 13, 12, 11, 10];
+new Chart(document.getElementById('cMes'),{type:'bar',data:{labels:ML,datasets:[{label:'Pedidos',data:MP,backgroundColor:'rgba(57,73,171,.85)',borderRadius:6,yAxisID:'y'},{label:'Facturación',data:MV,type:'line',borderColor:'#ff6f00',backgroundColor:'rgba(255,111,0,.1)',tension:.4,fill:true,yAxisID:'y2',pointBackgroundColor:'#ff6f00',pointRadius:5}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},scales:{y:{beginAtZero:true,title:{display:true,text:'# Pedidos'},grid:{color:'#f0f0f0'}},y2:{beginAtZero:true,position:'right',title:{display:true,text:'Facturación'},ticks:{callback:v=>fco(v)},grid:{display:false}}},plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:ctx=>ctx.datasetIndex===1?fco(ctx.raw):ctx.raw+' pedidos'}}}}  });
+new Chart(document.getElementById('cEst'),{type:'doughnut',data:{labels:['✅ Entregados','🔄 En Proceso','⏳ Pendientes'],datasets:[{data:[206,447,0],backgroundColor:['#2e7d32','#ff6f00','#7b1fa2'],hoverOffset:6,borderWidth:3,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{position:'bottom'}}}});
+const cTV=new Chart(document.getElementById('cTopV'),{type:'bar',data:{labels:TVN,datasets:[{label:'Valor Facturado',data:TVV,backgroundColor:'#1a237e',borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>fco(ctx.raw)}}},scales:{x:{ticks:{callback:v=>fco(v)},grid:{color:'#f0f0f0'}},y:{ticks:{font:{size:10}}}}  }});
+const cTP=new Chart(document.getElementById('cTopP'),{type:'bar',data:{labels:TPN,datasets:[{label:'# Pedidos',data:TPV,backgroundColor:'#ff6f00',borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true},y:{ticks:{font:{size:10}}}}  }});
+new Chart(document.getElementById('cCiu'),{type:'bar',data:{labels:CUN,datasets:[{label:'Pedidos',data:CUP,backgroundColor:CUN.map((_,i)=>`hsl(${210+i*13},65%,${40+i*2}%)`),borderRadius:5}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true},y:{ticks:{font:{size:10}}}}  }});
+function switchTab(t){document.getElementById('tv').style.display=t==='v'?'block':'none';document.getElementById('tp').style.display=t==='p'?'block':'none';document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',(t==='v'&&i===0)||(t==='p'&&i===1)));}
+</script>
+</body></html>
